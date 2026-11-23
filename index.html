@@ -74,7 +74,16 @@ let auto=true, history=[];
 function show(tab){["chatPage","editPage","scenePage"].forEach((id,i)=>$(id).classList.toggle("hidden",i!==tab));["chatTab","editTab","sceneTab"].forEach((id,i)=>$(id).classList.toggle("active",i===tab));$("composer").classList.toggle("hidden",tab!==0)}
 $("chatTab").onclick=()=>show(0);$("editTab").onclick=()=>show(1);$("sceneTab").onclick=()=>show(2);$("settingsBtn").onclick=()=>show(1);
 function sceneLabel(){return `場面：${scene.place}／${scene.time}・${scene.weather}`}
-function updateScene(){ $("sceneChip").textContent=sceneLabel(); $("heroDesc").textContent=`${$("age").value}歳・${$("style").value}／${$("relationship").value}`;}
+function updateScene(){
+  $("sceneChip").textContent=sceneLabel();
+  $("heroDesc").textContent=`${$("age").value}歳・${$("style").value}／${$("relationship").value}`;
+
+  const img = $("characterImage");
+
+  if(sceneLabel().includes("海")){
+    img.src="FF29FD44-D833-4F2B-B1D3-3AAE6DECEE29.png";
+  }
+}
 $("saveCharacter").onclick=()=>{let n=$("name").value.trim()||"キャラクター";$("heroName").textContent=n;updateScene();alert("キャラクター設定を保存しました（この端末内）。");show(0)};
 $("place").onchange=()=> $("customPlaceWrap").classList.toggle("hidden",$("place").value!=="自由入力");
 $("applyScene").onclick=()=>{scene={place:$("place").value==="自由入力"?($("customPlace").value||"自由入力"):$("place").value,time:$("time").value,weather:$("weather").value,outfit:$("outfit").value,situation:$("situation").value};updateScene();addMsg("bot",`場面を変更したよ。今は${scene.place}にいるんだね。${scene.time}で${scene.weather}。${scene.situation}`);show(0)};
