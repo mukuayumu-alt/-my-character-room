@@ -82,7 +82,55 @@ $("autoScene").onclick=()=>{auto=!auto;$("autoScene").textContent=`会話から�
 function addMsg(who,text){let d=document.createElement("div");d.className="msg "+who;d.textContent=text;$("messages").appendChild(d);$("messages").scrollTop=$("messages").scrollHeight;history.push({who,text})}
 function detectScene(t){let p=null;if(/海|ビーチ|砂浜/.test(t))p="海・砂浜";else if(/家に帰|自宅|うちに|家で/.test(t))p="自宅・リビング";else if(/カフェ|コーヒー/.test(t))p="カフェ";else if(/レストラン|ご飯を食べ/.test(t))p="レストラン";else if(/映画館|映画を見/.test(t))p="映画館";else if(/温泉/.test(t))p="温泉";else if(/公園/.test(t))p="公園";if(p&&auto){scene.place=p;updateScene();addMsg("bot",`場面を「${p}」に切り替えたよ。`)}}
 function reply(t){let n=$("name").value||"あかり";let p=$("personality").value;let lower=t.toLowerCase();if(/こんにちは|おはよう|こんばんは/.test(t))return `こんにちは！会えてうれしいな。今は${scene.place}にいるね。今日はどんな話をしよう？`;if(/海/.test(t))return `海っていいね。${scene.place}の景色を一緒に楽しみたいな。どんなふうに過ごそうか？`;if(/好き|大好き/.test(t))return `そう言ってくれてありがとう。ちょっと照れちゃうな。あなたは今、どんな気持ち？`;if(/何して|なにして/.test(t))return `今は${scene.place}で、あなたと話しているところだよ。そっちは何してた？`;return `うん、${t}なんだね。もう少し聞かせてほしいな。${scene.situation?`今は${scene.situation}という状況だね。`:""}あなたはどう思っている？`}
-function send(){let t=$("messageInput").value.trim();if(!t)return;addMsg("user",t);$("messageInput").value="";detectScene(t);setTimeout(()=>addMsg("bot",reply(t)),350)}
+async function send(){
+  let t=$("messageInput").value.trim();
+  if(!t)return;
+
+  addMsg("user",t);
+  $("messageInput").value="";
+  detectScene(t);
+
+  let messages=history.map(m=>({
+    role:m.who==="bot"?"assistant":"user",
+    content:m.text
+  }));
+
+  let last=messages[messages.length-1];
+
+  last.content +=
+    "\nあなたの名前："+$("name").value+
+    "\n年齢："+$("age").value+
+    "\n性格："+$("personality").value+
+    "\n話し方："+$("voice").value+
+    "\n容姿・服装："+$("appearance").value+
+    "\n関係性："+$("relationship").value+
+    "\n現在の場面："+sceneLabel()+
+    "\n服装："+scene.outfit+
+    "\n状況："+scene.situation+
+    "\nキャラクターとして自然な日本語で会話してください。";
+
+  try{
+    let r=await fetch(
+      "https://old-grass-0138.dorakueomoroinaa.workers.dev/",
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({messages})
+      }
+    );
+
+    let data=await r.json();
+
+    if(!r.ok){
+      throw new Error(data.error||"接続エラー");
+    }
+
+    addMsg("bot",data.reply);
+
+  }catch(e){
+    addMsg("bot","接続エラー："+e.message);
+  }
+}
 $("sendBtn").onclick=send;$("messageInput").addEventListener("keydown",e=>{if(e.key==="Enter")send()});
 $("newChat").onclick=()=>{if(confirm("会話をリセットしますか？")){$("messages").innerHTML="";history=[];addMsg("bot","また最初から話そう。今日はどんな一日にする？")}};
 updateScene();
