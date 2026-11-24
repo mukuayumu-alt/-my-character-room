@@ -83,6 +83,13 @@ function updateScene(){
   if(sceneLabel().includes("海")){
     img.src="FF29FD44-D833-4F2B-B1D3-3AAE6DECEE29.png";
   }
+
+  const settings={};
+  ["name","age","personality","voice","appearance","style","relationship"].forEach(id=>{
+    settings[id]=$(id).value;
+  });
+
+  localStorage.setItem("myCharacterSettings",JSON.stringify(settings));
 }
 $("saveCharacter").onclick=()=>{let n=$("name").value.trim()||"キャラクター";$("heroName").textContent=n;updateScene();alert("キャラクター設定を保存しました（この端末内）。");show(0)};
 $("place").onchange=()=> $("customPlaceWrap").classList.toggle("hidden",$("place").value!=="自由入力");
@@ -169,6 +176,16 @@ if(savedHistory){
     d.className="msg "+m.who;
     d.textContent=m.text;
     $("messages").appendChild(d);
+  });
+}let savedSettings=localStorage.getItem("myCharacterSettings");
+
+if(savedSettings){
+  let settings=JSON.parse(savedSettings);
+
+  Object.keys(settings).forEach(id=>{
+    if($(id)){
+      $(id).value=settings[id];
+    }
   });
 }updateScene();
 </script>
